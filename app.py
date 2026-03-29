@@ -154,51 +154,88 @@ col3.metric("VaR 99%", f"₹{var_99:,.0f}",
 col4.metric("CVaR 95%", f"₹{cvar_95:,.0f}",
             f"-₹{INVESTMENT-cvar_95:,.0f}")
 
-# VaR Chart
-fig4, ax = plt.subplots(figsize=(12, 5))
-ax.hist(simulation_results, bins=60,
-        color='steelblue', edgecolor='white',
-        alpha=0.7)
-ax.axvline(INVESTMENT, color='black',
-           linestyle='--', linewidth=2,
-           label=f'Investment ₹{INVESTMENT:,.0f}')
-ax.axvline(var_95, color='red',
-           linestyle='--', linewidth=2,
-           label=f'VaR 95% ₹{var_95:,.0f}')
-ax.axvline(var_99, color='darkred',
-           linestyle='--', linewidth=2,
-           label=f'VaR 99% ₹{var_99:,.0f}')
-ax.axvline(cvar_95, color='orange',
-           linestyle='--', linewidth=2,
-           label=f'CVaR 95% ₹{cvar_95:,.0f}')
-ax.axvline(np.median(simulation_results),
-           color='green', linestyle='--',
-           linewidth=2,
-           label=f'Median ₹{np.median(simulation_results):,.0f}')
-ax.set_xlabel('Portfolio Value After 1 Year (₹)')
-ax.set_ylabel('Frequency')
-ax.set_title('Monte Carlo Simulation — Portfolio Value Distribution')
-ax.legend()
-plt.tight_layout()
-st.pyplot(fig4)
-plt.close()
+# VaR Section
+st.header("4. Monte Carlo — Value at Risk")
 
-st.header("5. Business Insight")
-st.write(f"""
-**Portfolio Analysis Summary:**
+weights = np.array([0.1847, 0.0159, 0.6365,
+                    0.0138, 0.1490])
+mean_returns = returns.mean()
+cov_matrix = returns.cov()
+port_mean = np.dot(weights, mean_returns)
+port_vol = np.sqrt(np.dot(weights.T,
+                   np.dot(cov_matrix, weights)))
 
-This optimised 5-stock NSE portfolio targets maximum 
-risk-adjusted returns using Modern Portfolio Theory.
+# Check for valid values
+if np.isnan(port_mean) or np.isnan(port_vol):
+    st.error("Could not calculate portfolio statistics. Please try again.")
+else:
+    simulation_results = []
+    for i in range(NUM_SIMULATIONS):
+        daily_returns = np.random.normal(port_mean,
+                                         port_vol,
+                                         252)
+        price_series = [INVESTMENT]
+        for r in daily_returns:
+            price_series.append(price_series[-1] * (1 + r))
+        simulation_results.append(price_series[-1])
 
-- **Median expected value** after 1 year: 
-  ₹{np.median(simulation_results):,.0f} 
-  ({((np.median(simulation_results)/INVESTMENT)-1)*100:.1f}% return)
-- **VaR 95%**: Only 5% chance of losing more than 
-  ₹{INVESTMENT-var_95:,.0f}
-- **CVaR 95%**: In worst case scenarios, average loss 
-  is ₹{INVESTMENT-cvar_95:,.0f}
-- All 5 stocks show low correlations (0.20-0.35), 
-  confirming genuine diversification benefit
+    simulation_results = np.array(simulation_results)
+    
+    # Only plot if we have valid results
+    if len(simulation_results) > 0 and not np.any(np.isnan(simulation_results)):
+        var_95 = np.percentile(simulation_results, 5)
+        var_99 = np.percentile(simulation_results, 1)
+        cvar_95 = simulation_results[
+            simulation_results <= var_95].mean()
+
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("Median Value", f"₹{np.median(simulation_results):,.0f}")
+        col2.metric("VaR 95%", f"₹{var_95:,.0f}",
+                    f"-₹{INVESTMENT-var_95:,.0f}")
+        col3.metric("VaR 99%", f"₹{var_99:,.0f}",
+                    f"-₹{INVESTMENT-var_99:,.0f}")
+        col4.metric("CVaR 95%", f"₹{cvar_95:,.0f}",
+                    f"-₹{INVESTMENT-cvar_95:,.0f}")
+
+        fig4, ax = plt.subplots(figsize=(12, 5))
+        ax.hist(simulation_results, bins=60,
+                color='steelblue', edgecolor='white',
+                alpha=0.7)
+        ax.axvline(INVESTMENT, color='black',
+                   linestyle='--', linewidth=2,
+                   label=f'Investment ₹{INVESTMENT:,.0f}')
+        ax.axvline(var_95, color='red',
+                   linestyle='--', linewidth=2,
+                   label=f'VaR 95% ₹{var_95:,.0f}')
+        ax.axvline(var_99, color='darkred',
+                   linestyle='--', linewidth=2,
+                   label=f'VaR 99% ₹{var_99:,.0f}')
+        ax.axvline(cvar_95, color='orange',
+                   linestyle='--', linewidth=2,
+                   label=f'CVaR 95% ₹{cvar_95:,.0f}')
+        ax.axvline(np.median(simulation_results),
+                   color='green', linestyle='--',
+                   linewidth=2,
+                   label=f'Median ₹{np.median(simulation_results):,.0f}')
+        ax.set_xlabel('Portfolio Value After 1 Year (₹)')
+        ax.set_ylabel('Frequency')
+        ax.set_title('Monte Carlo Simulation — Portfolio VaR')
+        ax.legend()
+        plt.tight_layout()
+        st.pyplot(fig4)
+        plt.close()
+
+        st.header("5. Business Insight")
+        st.write(f"""
+        **Portfolio Analysis Summary:**
+        - **Median expected value** after 1 year: ₹{np.median(simulation_results):,.0f}
+        - **VaR 95%**: Only 5% chance of losing more than ₹{INVESTMENT-var_95:,.0f}
+        - **CVaR 95%**: In worst case scenarios, average loss is ₹{INVESTMENT-cvar_95:,.0f}
+        - All 5 stocks show low correlations (0.20-0.35)
+        - HINDUNILVR dominates optimal portfolio (63.65%)
+        """)
+    else:
+        st.error("Simulation produced invalid results. Please try again.")
 - HINDUNILVR dominates optimal portfolio (63.65%) 
   due to lowest volatility and lowest correlation 
   with other holdings
