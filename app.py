@@ -198,6 +198,79 @@ plt.tight_layout()
 st.pyplot(fig3)
 plt.close()
 
+# Sector Pie Chart
+st.subheader("Optimal Portfolio — Sector Allocation")
+
+# Map tickers to sectors
+sector_map = {
+    'TCS.NS': 'IT',
+    'INFY.NS': 'IT',
+    'WIPRO.NS': 'IT',
+    'HDFCBANK.NS': 'Banking',
+    'ICICIBANK.NS': 'Banking',
+    'SBIN.NS': 'Banking',
+    'HINDUNILVR.NS': 'FMCG',
+    'ITC.NS': 'FMCG',
+    'NESTLEIND.NS': 'FMCG',
+    'RELIANCE.NS': 'Energy',
+    'ONGC.NS': 'Energy',
+    'MARUTI.NS': 'Auto',
+    'BAJAJ-AUTO.NS': 'Auto',
+    'SUNPHARMA.NS': 'Pharma',
+    'DRREDDY.NS': 'Pharma',
+    'ZOMATO.NS': 'Tech',
+    'PAYTM.NS': 'Tech',
+    'ADANIPORTS.NS': 'Infra',
+    'LT.NS': 'Infra',
+    'ASIANPAINT.NS': 'Consumer'
+}
+
+# Aggregate weights by sector
+sector_weights = {}
+for ticker, weight in zip(tickers, best_weights):
+    sector = sector_map.get(ticker, 'Other')
+    sector_weights[sector] = (sector_weights.get(sector, 0) 
+                               + weight)
+
+# Plot
+col1, col2 = st.columns([1, 1])
+
+with col1:
+    fig_pie, ax_pie = plt.subplots(figsize=(6, 6))
+    colors = plt.cm.Set3(
+        np.linspace(0, 1, len(sector_weights)))
+    wedges, texts, autotexts = ax_pie.pie(
+        list(sector_weights.values()),
+        labels=list(sector_weights.keys()),
+        autopct='%1.1f%%',
+        colors=colors,
+        startangle=90,
+        pctdistance=0.85
+    )
+    for text in autotexts:
+        text.set_fontsize(9)
+    ax_pie.set_title('Sector Allocation')
+    plt.tight_layout()
+    st.pyplot(fig_pie)
+    plt.close()
+
+with col2:
+    sector_df = pd.DataFrame({
+        'Sector': list(sector_weights.keys()),
+        'Allocation': [f"{v:.1%}" 
+                       for v in sector_weights.values()],
+        'Amount (₹)': [f"₹{v*INVESTMENT:,.0f}" 
+                        for v in sector_weights.values()]
+    }).sort_values('Allocation', ascending=False)
+    
+    st.dataframe(sector_df, use_container_width=True,
+                 hide_index=True)
+    
+    dominant_sector = max(sector_weights.items(),
+                          key=lambda x: x[1])
+    st.write(f"**Dominant Sector:** {dominant_sector[0]} "
+             f"({dominant_sector[1]:.1%} allocation)")
+  
 # Historical Backtesting
 st.header("5. Historical Backtesting")
 
