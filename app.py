@@ -127,44 +127,6 @@ port_mean = np.dot(weights, mean_returns)
 port_vol = np.sqrt(np.dot(weights.T,
                    np.dot(cov_matrix, weights)))
 
-simulation_results = []
-for i in range(NUM_SIMULATIONS):
-    daily_returns = np.random.normal(port_mean,
-                                     port_vol,
-                                     252)
-    price_series = [INVESTMENT]
-    for r in daily_returns:
-        price_series.append(price_series[-1] * (1 + r))
-    simulation_results.append(price_series[-1])
-
-simulation_results = np.array(simulation_results)
-
-var_95 = np.percentile(simulation_results, 5)
-var_99 = np.percentile(simulation_results, 1)
-cvar_95 = simulation_results[
-    simulation_results <= var_95].mean()
-
-# Display metrics
-col1, col2, col3, col4 = st.columns(4)
-col1.metric("Median Value", f"₹{np.median(simulation_results):,.0f}")
-col2.metric("VaR 95%", f"₹{var_95:,.0f}", 
-            f"-₹{INVESTMENT-var_95:,.0f}")
-col3.metric("VaR 99%", f"₹{var_99:,.0f}",
-            f"-₹{INVESTMENT-var_99:,.0f}")
-col4.metric("CVaR 95%", f"₹{cvar_95:,.0f}",
-            f"-₹{INVESTMENT-cvar_95:,.0f}")
-
-# VaR Section
-st.header("4. Monte Carlo — Value at Risk")
-
-weights = np.array([0.1847, 0.0159, 0.6365,
-                    0.0138, 0.1490])
-mean_returns = returns.mean()
-cov_matrix = returns.cov()
-port_mean = np.dot(weights, mean_returns)
-port_vol = np.sqrt(np.dot(weights.T,
-                   np.dot(cov_matrix, weights)))
-
 # Check for valid values
 if np.isnan(port_mean) or np.isnan(port_vol):
     st.error("Could not calculate portfolio statistics. Please try again.")
