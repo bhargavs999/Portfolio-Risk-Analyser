@@ -198,6 +198,54 @@ plt.tight_layout()
 st.pyplot(fig3)
 plt.close()
 
+
+# Historical Backtesting
+st.header("5. Historical Backtesting")
+
+# Get optimal weights
+best_weights = np.array(weights_record[max_sharpe_idx])
+
+# Calculate portfolio historical returns
+portfolio_returns = returns.dot(best_weights)
+cumulative_returns = (1 + portfolio_returns).cumprod()
+portfolio_value = cumulative_returns * INVESTMENT
+
+# Final value
+final_value = portfolio_value.iloc[-1]
+total_return = ((final_value - INVESTMENT) / INVESTMENT) * 100
+
+# Display metrics
+col1, col2, col3 = st.columns(3)
+col1.metric("Starting Investment", f"₹{INVESTMENT:,.0f}")
+col2.metric("Final Value", f"₹{final_value:,.0f}")
+col3.metric("Total Return", f"{total_return:.1f}%")
+
+# Plot
+fig_bt, ax_bt = plt.subplots(figsize=(12, 5))
+ax_bt.plot(portfolio_value.index, portfolio_value,
+           color='steelblue', linewidth=2,
+           label='Optimal Portfolio')
+ax_bt.axhline(y=INVESTMENT, color='red',
+              linestyle='--', linewidth=1.5,
+              label=f'Starting Investment ₹{INVESTMENT:,.0f}')
+ax_bt.fill_between(portfolio_value.index,
+                    INVESTMENT, portfolio_value,
+                    where=portfolio_value >= INVESTMENT,
+                    alpha=0.2, color='green',
+                    label='Profit Zone')
+ax_bt.fill_between(portfolio_value.index,
+                    INVESTMENT, portfolio_value,
+                    where=portfolio_value < INVESTMENT,
+                    alpha=0.2, color='red',
+                    label='Loss Zone')
+ax_bt.set_xlabel('Date')
+ax_bt.set_ylabel('Portfolio Value (₹)')
+ax_bt.set_title('Historical Portfolio Performance — Optimal Weights')
+ax_bt.legend()
+plt.tight_layout()
+st.pyplot(fig_bt)
+plt.close()
+
 # Sector Pie Chart
 st.subheader("Optimal Portfolio — Sector Allocation")
 
@@ -270,53 +318,6 @@ with col2:
                           key=lambda x: x[1])
     st.write(f"**Dominant Sector:** {dominant_sector[0]} "
              f"({dominant_sector[1]:.1%} allocation)")
-  
-# Historical Backtesting
-st.header("5. Historical Backtesting")
-
-# Get optimal weights
-best_weights = np.array(weights_record[max_sharpe_idx])
-
-# Calculate portfolio historical returns
-portfolio_returns = returns.dot(best_weights)
-cumulative_returns = (1 + portfolio_returns).cumprod()
-portfolio_value = cumulative_returns * INVESTMENT
-
-# Final value
-final_value = portfolio_value.iloc[-1]
-total_return = ((final_value - INVESTMENT) / INVESTMENT) * 100
-
-# Display metrics
-col1, col2, col3 = st.columns(3)
-col1.metric("Starting Investment", f"₹{INVESTMENT:,.0f}")
-col2.metric("Final Value", f"₹{final_value:,.0f}")
-col3.metric("Total Return", f"{total_return:.1f}%")
-
-# Plot
-fig_bt, ax_bt = plt.subplots(figsize=(12, 5))
-ax_bt.plot(portfolio_value.index, portfolio_value,
-           color='steelblue', linewidth=2,
-           label='Optimal Portfolio')
-ax_bt.axhline(y=INVESTMENT, color='red',
-              linestyle='--', linewidth=1.5,
-              label=f'Starting Investment ₹{INVESTMENT:,.0f}')
-ax_bt.fill_between(portfolio_value.index,
-                    INVESTMENT, portfolio_value,
-                    where=portfolio_value >= INVESTMENT,
-                    alpha=0.2, color='green',
-                    label='Profit Zone')
-ax_bt.fill_between(portfolio_value.index,
-                    INVESTMENT, portfolio_value,
-                    where=portfolio_value < INVESTMENT,
-                    alpha=0.2, color='red',
-                    label='Loss Zone')
-ax_bt.set_xlabel('Date')
-ax_bt.set_ylabel('Portfolio Value (₹)')
-ax_bt.set_title('Historical Portfolio Performance — Optimal Weights')
-ax_bt.legend()
-plt.tight_layout()
-st.pyplot(fig_bt)
-plt.close()
 
 # Benchmark Comparison
 st.header("6. Benchmark Comparison — Portfolio vs NIFTY 50")
