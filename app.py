@@ -126,9 +126,8 @@ results = np.zeros((3, 10000))
 for i in range(10000):
     w = np.random.dirichlet(np.ones(5))
     weights_record.append(w)
-    port_return = np.sum(returns.mean() * w) * 252
-    port_vol = np.sqrt(np.dot(w.T, 
-                       np.dot(returns.cov() * 252, w)))
+    port_return = np.sum(returns.mean().values * w) * 252
+    port_vol = np.sqrt(np.dot(w.T, np.dot(returns.cov().values * 252, w)))
     results[0, i] = port_return
     results[1, i] = port_vol
     results[2, i] = port_return / port_vol
@@ -162,11 +161,10 @@ st.header("4. Monte Carlo — Value at Risk")
 
 n = len(tickers)
 weights = np.array([1/n] * n)
-mean_returns = returns.mean()
-cov_matrix = returns.cov()
+mean_returns = returns.mean().values
+cov_matrix = returns.cov().values
 port_mean = np.dot(weights, mean_returns)
-port_vol = np.sqrt(np.dot(weights.T,
-                   np.dot(cov_matrix, weights)))
+port_vol = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights)))
 
 # Check for valid values
 if np.isnan(port_mean) or np.isnan(port_vol):
