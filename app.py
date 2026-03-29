@@ -156,8 +156,55 @@ plt.tight_layout()
 st.pyplot(fig3)
 plt.close()
 
+# Historical Backtesting
+st.header("4. Historical Backtesting")
+
+# Get optimal weights
+best_weights = np.array(weights_record[max_sharpe_idx])
+
+# Calculate portfolio historical returns
+portfolio_returns = returns.dot(best_weights)
+cumulative_returns = (1 + portfolio_returns).cumprod()
+portfolio_value = cumulative_returns * INVESTMENT
+
+# Final value
+final_value = portfolio_value.iloc[-1]
+total_return = ((final_value - INVESTMENT) / INVESTMENT) * 100
+
+# Display metrics
+col1, col2, col3 = st.columns(3)
+col1.metric("Starting Investment", f"₹{INVESTMENT:,.0f}")
+col2.metric("Final Value", f"₹{final_value:,.0f}")
+col3.metric("Total Return", f"{total_return:.1f}%")
+
+# Plot
+fig_bt, ax_bt = plt.subplots(figsize=(12, 5))
+ax_bt.plot(portfolio_value.index, portfolio_value,
+           color='steelblue', linewidth=2,
+           label='Optimal Portfolio')
+ax_bt.axhline(y=INVESTMENT, color='red',
+              linestyle='--', linewidth=1.5,
+              label=f'Starting Investment ₹{INVESTMENT:,.0f}')
+ax_bt.fill_between(portfolio_value.index,
+                    INVESTMENT, portfolio_value,
+                    where=portfolio_value >= INVESTMENT,
+                    alpha=0.2, color='green',
+                    label='Profit Zone')
+ax_bt.fill_between(portfolio_value.index,
+                    INVESTMENT, portfolio_value,
+                    where=portfolio_value < INVESTMENT,
+                    alpha=0.2, color='red',
+                    label='Loss Zone')
+ax_bt.set_xlabel('Date')
+ax_bt.set_ylabel('Portfolio Value (₹)')
+ax_bt.set_title('Historical Portfolio Performance — Optimal Weights')
+ax_bt.legend()
+plt.tight_layout()
+st.pyplot(fig_bt)
+plt.close()
+
 # VaR Section
-st.header("4. Monte Carlo — Value at Risk")
+st.header("5. Monte Carlo — Value at Risk")
 
 n = len(tickers)
 weights = np.array([1/n] * n)
@@ -226,7 +273,7 @@ else:
         st.pyplot(fig4)
         plt.close()
 
-        st.header("5. Business Insight")
+        st.header("6. Business Insight")
         st.write(f"""
         **Portfolio Analysis Summary:**
         - **Median expected value** after 1 year: ₹{np.median(simulation_results):,.0f}
