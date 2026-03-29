@@ -203,8 +203,74 @@ plt.tight_layout()
 st.pyplot(fig_bt)
 plt.close()
 
+# Benchmark Comparison
+st.header("5. Benchmark Comparison — Portfolio vs NIFTY 50")
+
+@st.cache_data
+def load_benchmark():
+    nifty = yf.download('^NSEI', start='2022-01-01',
+                        end='2024-12-31', auto_adjust=True)
+    return nifty['Close'].squeeze()
+
+nifty_prices = load_benchmark()
+nifty_returns = nifty_prices.pct_change().dropna()
+nifty_cumulative = (1 + nifty_returns).cumprod() * INVESTMENT
+
+# Align dates
+common_dates = portfolio_value.index.intersection(
+    nifty_cumulative.index)
+portfolio_aligned = portfolio_value[common_dates]
+nifty_aligned = nifty_cumulative[common_dates]
+
+# Final values
+nifty_final = nifty_aligned.iloc[-1]
+nifty_return = ((nifty_final - INVESTMENT) / INVESTMENT) * 100
+outperformance = total_return - nifty_return
+
+# Metrics
+col1, col2, col3 = st.columns(3)
+col1.metric("Portfolio Return", f"{total_return:.1f}%")
+col2.metric("NIFTY 50 Return", f"{nifty_return:.1f}%")
+col3.metric("Outperformance", f"{outperformance:.1f}%",
+            f"{'above' if outperformance > 0 else 'below'} NIFTY 50")
+
+# Plot
+fig_bench, ax_bench = plt.subplots(figsize=(12, 5))
+ax_bench.plot(portfolio_aligned.index, portfolio_aligned,
+              color='steelblue', linewidth=2,
+              label='Optimal Portfolio')
+ax_bench.plot(nifty_aligned.index, nifty_aligned,
+              color='orange', linewidth=2,
+              label='NIFTY 50')
+ax_bench.axhline(y=INVESTMENT, color='red',
+                 linestyle='--', linewidth=1.5,
+                 label=f'Starting Investment ₹{INVESTMENT:,.0f}')
+ax_bench.fill_between(portfolio_aligned.index,
+                       portfolio_aligned, nifty_aligned,
+                       where=portfolio_aligned >= nifty_aligned,
+                       alpha=0.2, color='green',
+                       label='Portfolio Outperforming')
+ax_bench.fill_between(portfolio_aligned.index,
+                       portfolio_aligned, nifty_aligned,
+                       where=portfolio_aligned < nifty_aligned,
+                       alpha=0.2, color='red',
+                       label='Portfolio Underperforming')
+ax_bench.set_xlabel('Date')
+ax_bench.set_ylabel('Portfolio Value (₹)')
+ax_bench.set_title('Optimal Portfolio vs NIFTY 50 Index')
+ax_bench.legend()
+plt.tight_layout()
+st.pyplot(fig_bench)
+plt.close()
+
+# Business insight
+if outperformance > 0:
+    st.success(f"Your optimal portfolio outperformed NIFTY 50 by {outperformance:.1f}% over 3 years.")
+else:
+    st.warning(f"Your optimal portfolio underperformed NIFTY 50 by {abs(outperformance):.1f}% over 3 years.")
+
 # VaR Section
-st.header("5. Monte Carlo — Value at Risk")
+st.header("6. Monte Carlo — Value at Risk")
 
 n = len(tickers)
 weights = np.array([1/n] * n)
@@ -273,7 +339,7 @@ else:
         st.pyplot(fig4)
         plt.close()
 
-        st.header("6. Business Insight")
+        st.header("7. Business Insight")
         st.write(f"""
         **Portfolio Analysis Summary:**
         - **Median expected value** after 1 year: ₹{np.median(simulation_results):,.0f}
