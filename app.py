@@ -124,7 +124,7 @@ weights_record = []
 results = np.zeros((3, 10000))
 
 for i in range(10000):
-    w = np.random.dirichlet(np.ones(5))
+    w = np.random.dirichlet(np.ones(len(tickers)))
     weights_record.append(w)
     port_return = np.sum(returns.mean().values * w) * 252
     port_vol = np.sqrt(np.dot(w.T, np.dot(returns.cov().values * 252, w)))
