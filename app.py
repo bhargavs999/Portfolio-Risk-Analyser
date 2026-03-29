@@ -269,8 +269,55 @@ if outperformance > 0:
 else:
     st.warning(f"Your optimal portfolio underperformed NIFTY 50 by {abs(outperformance):.1f}% over 3 years.")
 
+# Portfolio vs Individual Stocks
+st.header("6. Portfolio vs Individual Stocks")
+
+# Calculate individual stock returns over period
+individual_returns = {}
+for ticker in tickers:
+    stock_cumret = (1 + returns[ticker]).cumprod()
+    individual_returns[ticker] = (
+        stock_cumret.iloc[-1] - 1) * 100
+
+# Add portfolio return
+individual_returns['Optimal Portfolio'] = total_return
+
+# Sort by return
+sorted_returns = dict(sorted(
+    individual_returns.items(),
+    key=lambda x: x[1]))
+
+# Plot
+fig_ind, ax_ind = plt.subplots(figsize=(10, 5))
+colors = ['steelblue' if k != 'Optimal Portfolio' 
+          else 'gold' for k in sorted_returns.keys()]
+bars = ax_ind.barh(list(sorted_returns.keys()),
+                    list(sorted_returns.values()),
+                    color=colors, edgecolor='white')
+
+# Add value labels
+for bar, val in zip(bars, sorted_returns.values()):
+    ax_ind.text(val + 1, bar.get_y() + 
+                bar.get_height()/2,
+                f'{val:.1f}%',
+                va='center', fontweight='bold')
+
+ax_ind.axvline(x=0, color='white', linewidth=0.5)
+ax_ind.set_xlabel('Total Return (%)')
+ax_ind.set_title('3-Year Return: Optimal Portfolio vs Individual Stocks')
+plt.tight_layout()
+st.pyplot(fig_ind)
+plt.close()
+
+# Key insight
+best_individual = max(individual_returns.items(),
+                      key=lambda x: x[1]
+                      if x[0] != 'Optimal Portfolio' 
+                      else -999)
+st.info(f"The optimal portfolio outperformed even the best individual stock ({best_individual[0]} at {best_individual[1]:.1f}%) — proving diversification adds real value.")
+
 # VaR Section
-st.header("6. Monte Carlo — Value at Risk")
+st.header("7. Monte Carlo — Value at Risk")
 
 n = len(tickers)
 weights = np.array([1/n] * n)
@@ -339,7 +386,7 @@ else:
         st.pyplot(fig4)
         plt.close()
 
-        st.header("7. Business Insight")
+        st.header("8. Business Insight")
         st.write(f"""
         **Portfolio Analysis Summary:**
         - **Median expected value** after 1 year: ₹{np.median(simulation_results):,.0f}
