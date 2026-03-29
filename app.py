@@ -30,26 +30,65 @@ NUM_SIMULATIONS = st.sidebar.slider(
     step=100
 )
 
-st.sidebar.write("---")
-st.sidebar.write("**Selected Stocks:**")
-st.sidebar.write("TCS, HDFCBANK, HINDUNILVR, MARUTI, RELIANCE")
+available_stocks = {
+    'TCS — IT': 'TCS.NS',
+    'Infosys — IT': 'INFY.NS',
+    'Wipro — IT': 'WIPRO.NS',
+    'HDFC Bank — Banking': 'HDFCBANK.NS',
+    'ICICI Bank — Banking': 'ICICIBANK.NS',
+    'SBI — Banking': 'SBIN.NS',
+    'HUL — FMCG': 'HINDUNILVR.NS',
+    'ITC — FMCG': 'ITC.NS',
+    'Nestle — FMCG': 'NESTLEIND.NS',
+    'Reliance — Energy': 'RELIANCE.NS',
+    'ONGC — Energy': 'ONGC.NS',
+    'Maruti — Auto': 'MARUTI.NS',
+    'Bajaj Auto — Auto': 'BAJAJ-AUTO.NS',
+    'Sun Pharma — Pharma': 'SUNPHARMA.NS',
+    'Dr Reddy — Pharma': 'DRREDDY.NS',
+    'Zomato — Tech': 'ZOMATO.NS',
+    'Paytm — Tech': 'PAYTM.NS',
+    'Adani Ports — Infra': 'ADANIPORTS.NS',
+    'L&T — Infra': 'LT.NS',
+    'Asian Paints — Consumer': 'ASIANPAINT.NS'
+}
+
+selected_names = st.sidebar.multiselect(
+    "Select Stocks (choose 3-7)",
+    options=list(available_stocks.keys()),
+    default=['TCS — IT', 'HDFC Bank — Banking',
+             'HUL — FMCG', 'Maruti — Auto',
+             'Reliance — Energy']
+)
+
+if len(selected_names) < 3:
+    st.error("Please select at least 3 stocks.")
+    st.stop()
+
+tickers = [available_stocks[name] for name in selected_names]
 
 # Load data
 @st.cache_data
-def load_data():
-    tickers = ['TCS.NS', 'HDFCBANK.NS', 'HINDUNILVR.NS', 
-               'MARUTI.NS', 'RELIANCE.NS']
-    data = yf.download(tickers, start='2022-01-01', 
+def load_data(tickers_tuple):
+    tickers = list(tickers_tuple)
+    data = yf.download(tickers, start='2022-01-01',
                        end='2024-12-31', auto_adjust=True)
     prices = data['Close']
+    prices.columns = tickers
     returns = prices.pct_change().dropna()
-    return tickers, prices, returns
+    return prices, returns
 
-tickers, prices, returns = load_data()
+prices, returns = load_data(tuple(tickers))
 
+# Return Distributions
 st.header("1. Return Distributions")
 
-fig, axes = plt.subplots(2, 3, figsize=(15, 8))
+num_stocks = len(tickers)
+cols = 3
+rows = (num_stocks + cols - 1) // cols
+
+fig, axes = plt.subplots(rows, cols, 
+                          figsize=(15, 5 * rows))
 axes = axes.flatten()
 
 for i, ticker in enumerate(tickers):
@@ -58,7 +97,9 @@ for i, ticker in enumerate(tickers):
     axes[i].set_title(f'{ticker}')
     axes[i].set_xlabel('Daily Return')
 
-axes[5].set_visible(False)
+for j in range(i + 1, len(axes)):
+    axes[j].set_visible(False)
+
 plt.tight_layout()
 st.pyplot(fig)
 plt.close()
@@ -119,8 +160,8 @@ plt.close()
 # VaR Section
 st.header("4. Monte Carlo — Value at Risk")
 
-weights = np.array([0.1847, 0.0159, 0.6365,
-                    0.0138, 0.1490])
+n = len(tickers)
+weights = np.array([1/n] * n)
 mean_returns = returns.mean()
 cov_matrix = returns.cov()
 port_mean = np.dot(weights, mean_returns)
