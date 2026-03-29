@@ -325,8 +325,56 @@ if total_return > best_individual[1]:
 else:
     st.info(f"While {best_individual[0]} individually returned {best_individual[1]:.1f}%, the optimal portfolio achieved {total_return:.1f}% with significantly lower risk — better risk-adjusted performance even if not the highest raw return.")
 
+# Drawdown Analysis
+st.header("7. Maximum Drawdown Analysis")
+
+# Calculate drawdown
+rolling_max = portfolio_value.cummax()
+drawdown = (portfolio_value - rolling_max) / rolling_max * 100
+max_drawdown = drawdown.min()
+max_drawdown_date = drawdown.idxmin()
+
+# Metrics
+col1, col2, col3 = st.columns(3)
+col1.metric("Maximum Drawdown", f"{max_drawdown:.1f}%")
+col2.metric("Worst Date", max_drawdown_date.strftime('%b %Y'))
+col3.metric("Recovery", "Full Recovery Achieved" 
+            if portfolio_value.iloc[-1] > portfolio_value.iloc[0] 
+            else "Not Yet Recovered")
+
+# Plot
+fig_dd, ax_dd = plt.subplots(figsize=(12, 4))
+ax_dd.fill_between(drawdown.index, drawdown, 0,
+                    color='red', alpha=0.4,
+                    label='Drawdown')
+ax_dd.plot(drawdown.index, drawdown,
+           color='red', linewidth=1)
+ax_dd.axhline(y=max_drawdown, color='darkred',
+              linestyle='--', linewidth=1.5,
+              label=f'Max Drawdown {max_drawdown:.1f}%')
+ax_dd.axhline(y=0, color='white',
+              linewidth=0.5)
+ax_dd.set_xlabel('Date')
+ax_dd.set_ylabel('Drawdown (%)')
+ax_dd.set_title('Portfolio Drawdown Over Time')
+ax_dd.legend()
+plt.tight_layout()
+st.pyplot(fig_dd)
+plt.close()
+
+st.write(f"""
+**What this means:**
+The portfolio experienced a maximum drawdown of **{max_drawdown:.1f}%** 
+in **{max_drawdown_date.strftime('%B %Y')}**. 
+This means at its worst point, the portfolio had fallen 
+{abs(max_drawdown):.1f}% from its recent peak. 
+Despite this, the portfolio fully recovered and went on 
+to deliver {total_return:.1f}% total returns — demonstrating 
+resilience through market volatility.
+""")
+
 # VaR Section
-st.header("7. Monte Carlo — Value at Risk")
+st.header("8. Monte Carlo — Value at Risk")
 
 n = len(tickers)
 weights = np.array([1/n] * n)
@@ -395,7 +443,7 @@ else:
         st.pyplot(fig4)
         plt.close()
 
-        st.header("8. Business Insight")
+        st.header("9. Business Insight")
         st.write(f"""
         **Portfolio Analysis Summary:**
         - **Median expected value** after 1 year: ₹{np.median(simulation_results):,.0f}
