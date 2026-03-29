@@ -236,7 +236,4 @@ else:
         """)
     else:
         st.error("Simulation produced invalid results. Please try again.")
-- HINDUNILVR dominates optimal portfolio (63.65%) 
-  due to lowest volatility and lowest correlation 
-  with other holdings
-""")
+
