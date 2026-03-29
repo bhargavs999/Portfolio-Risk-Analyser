@@ -314,7 +314,16 @@ best_individual = max(individual_returns.items(),
                       key=lambda x: x[1]
                       if x[0] != 'Optimal Portfolio' 
                       else -999)
-st.info(f"The optimal portfolio outperformed even the best individual stock ({best_individual[0]} at {best_individual[1]:.1f}%) — proving diversification adds real value.")
+best_individual = max(
+    {k: v for k, v in individual_returns.items() 
+     if k != 'Optimal Portfolio'}.items(),
+    key=lambda x: x[1]
+)
+
+if total_return > best_individual[1]:
+    st.success(f"The optimal portfolio outperformed every individual stock including the best performer ({best_individual[0]} at {best_individual[1]:.1f}%) — proving diversification adds real value.")
+else:
+    st.info(f"While {best_individual[0]} individually returned {best_individual[1]:.1f}%, the optimal portfolio achieved {total_return:.1f}% with significantly lower risk — better risk-adjusted performance even if not the highest raw return.")
 
 # VaR Section
 st.header("7. Monte Carlo — Value at Risk")
