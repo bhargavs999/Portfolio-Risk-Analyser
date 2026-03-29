@@ -67,6 +67,48 @@ if len(selected_names) < 3:
 
 tickers = [available_stocks[name] for name in selected_names]
 
+# Current Market Data
+st.header("1. Current Market Data")
+
+@st.cache_data(ttl=300)
+def load_current_data(tickers_tuple):
+    tickers = list(tickers_tuple)
+    data = yf.download(tickers, period='1y', 
+                       auto_adjust=True)
+    prices = data['Close']
+    prices.columns = tickers
+    return prices
+
+current_data = load_current_data(tuple(tickers))
+
+market_data = []
+for ticker in tickers:
+    stock_prices = current_data[ticker].dropna()
+    current_price = stock_prices.iloc[-1]
+    prev_price = stock_prices.iloc[-2]
+    daily_change = ((current_price - prev_price) 
+                    / prev_price * 100)
+    high_52w = stock_prices.max()
+    low_52w = stock_prices.min()
+    
+    market_data.append({
+        'Stock': ticker,
+        'Current Price (₹)': f"₹{current_price:,.0f}",
+        '52W High (₹)': f"₹{high_52w:,.0f}",
+        '52W Low (₹)': f"₹{low_52w:,.0f}",
+        'Daily Change': f"{daily_change:+.2f}%",
+        'Position': (
+            'Near High 🔴' 
+            if current_price > 0.9 * high_52w 
+            else 'Near Low 🟢' 
+            if current_price < 1.1 * low_52w 
+            else 'Mid Range 🟡')
+    })
+
+market_df = pd.DataFrame(market_data)
+st.dataframe(market_df, use_container_width=True,
+             hide_index=True)
+
 # Load data
 @st.cache_data
 def load_data(tickers_tuple):
@@ -81,7 +123,7 @@ def load_data(tickers_tuple):
 prices, returns = load_data(tuple(tickers))
 
 # Return Distributions
-st.header("1. Return Distributions")
+st.header("2. Return Distributions")
 
 num_stocks = len(tickers)
 cols = 3
@@ -105,7 +147,7 @@ st.pyplot(fig)
 plt.close()
 
 # Correlation Matrix
-st.header("2. Correlation Matrix")
+st.header("3. Correlation Matrix")
 
 fig2, ax = plt.subplots(figsize=(8, 6))
 import seaborn as sns
@@ -118,7 +160,7 @@ st.pyplot(fig2)
 plt.close()
 
 # Portfolio Optimisation
-st.header("3. Efficient Frontier")
+st.header("4. Efficient Frontier")
 
 weights_record = []
 results = np.zeros((3, 10000))
@@ -157,7 +199,7 @@ st.pyplot(fig3)
 plt.close()
 
 # Historical Backtesting
-st.header("4. Historical Backtesting")
+st.header("5. Historical Backtesting")
 
 # Get optimal weights
 best_weights = np.array(weights_record[max_sharpe_idx])
@@ -204,7 +246,7 @@ st.pyplot(fig_bt)
 plt.close()
 
 # Benchmark Comparison
-st.header("5. Benchmark Comparison — Portfolio vs NIFTY 50")
+st.header("6. Benchmark Comparison — Portfolio vs NIFTY 50")
 
 @st.cache_data
 def load_benchmark():
@@ -270,7 +312,7 @@ else:
     st.warning(f"Your optimal portfolio underperformed NIFTY 50 by {abs(outperformance):.1f}% over 3 years.")
 
 # Portfolio vs Individual Stocks
-st.header("6. Portfolio vs Individual Stocks")
+st.header("7. Portfolio vs Individual Stocks")
 
 # Calculate individual stock returns over period
 individual_returns = {}
@@ -326,7 +368,7 @@ else:
     st.info(f"While {best_individual[0]} individually returned {best_individual[1]:.1f}%, the optimal portfolio achieved {total_return:.1f}% with significantly lower risk — better risk-adjusted performance even if not the highest raw return.")
 
 # Drawdown Analysis
-st.header("7. Maximum Drawdown Analysis")
+st.header("8. Maximum Drawdown Analysis")
 
 # Calculate drawdown
 rolling_max = portfolio_value.cummax()
@@ -374,7 +416,7 @@ resilience through market volatility.
 """)
 
 # VaR Section
-st.header("8. Monte Carlo — Value at Risk")
+st.header("9. Monte Carlo — Value at Risk")
 
 n = len(tickers)
 weights = np.array([1/n] * n)
@@ -443,7 +485,7 @@ else:
         st.pyplot(fig4)
         plt.close()
 
-        st.header("9. Business Insight")
+        st.header("10. Business Insight")
         st.write(f"""
         **Portfolio Analysis Summary:**
         - **Median expected value** after 1 year: ₹{np.median(simulation_results):,.0f}
