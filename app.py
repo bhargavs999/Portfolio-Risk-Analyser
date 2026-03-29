@@ -10,7 +10,7 @@ st.set_page_config(page_title="Portfolio Risk Analyser",
                    layout="wide")
 
 st.title("Portfolio Risk Analyser — NSE Stocks")
-st.write("Analyse risk and return for a 5-stock Indian equity portfolio using Monte Carlo simulation and Modern Portfolio Theory.")
+st.write("Analyse risk and return for an Indian equity portfolio using Monte Carlo simulation and Modern Portfolio Theory.")
 
 st.sidebar.header("Portfolio Settings")
 
