@@ -7,15 +7,39 @@ import seaborn as sns
 import warnings
 warnings.filterwarnings("ignore")
 
-st.set_page_config(page_title="Portfolio Risk Analyser", layout="wide")
-
-st.title("Portfolio Risk Analyser — NSE Stocks")
-st.write(
-    "A data-driven portfolio analysis tool for Indian equity investors. "
-    "Select your stocks, set your investment amount, and get a complete "
-    "picture of optimal allocation, historical performance, risk metrics, "
-    "and future simulations — all powered by real NSE market data."
+st.set_page_config(
+    page_title="Portfolio Risk Analyser | Bhargav Singh",
+    page_icon="📊",
+    layout="wide"
 )
+
+st.markdown("""
+    <div style='text-align: center; padding: 1rem 0 0.5rem 0;'>
+        <h1 style='font-size: 2.4rem; font-weight: 700; margin-bottom: 0;'>
+            📊 Portfolio Risk Analyser
+        </h1>
+        <p style='color: grey; font-size: 0.95rem; margin-top: 0.3rem;'>
+            Built by <strong>Bhargav Singh</strong> · D.J. Sanghvi College of Engineering · 
+            <a href='https://www.linkedin.com/in/bhargavsingh9' target='_blank'>LinkedIn</a> · 
+            <a href='https://github.com/bhargavs999' target='_blank'>GitHub</a>
+        </p>
+        <p style='color: grey; font-size: 0.85rem;'>
+            A data-driven portfolio analysis tool for Indian equity investors. 
+            Select your stocks, set your investment amount, and get a complete 
+            picture of optimal allocation, historical performance, risk metrics, 
+            and future simulations — all powered by real NSE market data.
+        </p>
+        <hr style='margin-top: 0.8rem;'>
+    </div>
+""", unsafe_allow_html=True)
+
+st.sidebar.markdown("""
+    <div style='text-align: center; padding-bottom: 1rem;'>
+        <h3 style='margin-bottom: 0;'>⚙️ Settings</h3>
+        <p style='color: grey; font-size: 0.8rem;'>Bhargav Singh · DJSCE</p>
+    </div>
+    <hr>
+""", unsafe_allow_html=True)
 
 st.sidebar.header("Portfolio Settings")
 
@@ -72,13 +96,23 @@ if len(selected_names) < 3:
 
 tickers = [available_stocks[name] for name in selected_names]
 
+# ── TOP METRIC STRIP ──────────────────────────────────────────────────────────
+col1, col2, col3, col4 = st.columns(4)
+col1.metric("Stocks Selected", len(tickers))
+col2.metric("Investment", f"₹{INVESTMENT:,.0f}")
+col3.metric("Simulations", f"{NUM_SIMULATIONS:,}")
+col4.metric("Data Period", "2022–2024")
+
+st.divider()
+
 # ── SECTION 1 — CURRENT MARKET DATA ──────────────────────────────────────────
-st.header("1. Current Market Data")
+st.markdown("### 1. 📈 Current Market Data")
 st.caption(
     "Live snapshot of each selected stock — current price, 52-week range, "
     "and today's movement. Use this to understand where each stock is trading "
     "relative to its yearly high and low before investing."
 )
+st.divider()
 
 @st.cache_data(ttl=300)
 def load_current_data(tickers_tuple):
@@ -127,7 +161,7 @@ def load_data(tickers_tuple):
 prices, returns = load_data(tuple(tickers))
 
 # ── SECTION 2 — EFFICIENT FRONTIER ───────────────────────────────────────────
-st.header("2. Efficient Frontier & Optimal Portfolio")
+st.markdown("### 2. 🎯 Efficient Frontier & Optimal Portfolio")
 st.caption(
     "This is the core of Modern Portfolio Theory. We simulate 10,000 different "
     "ways to split your investment across your selected stocks. Each dot is one "
@@ -135,6 +169,7 @@ st.caption(
     "you get per unit of risk. The red star is the mathematically optimal "
     "portfolio. The blue star is the least risky portfolio possible."
 )
+st.divider()
 
 weights_record = []
 results = np.zeros((3, 10000))
@@ -169,13 +204,14 @@ st.pyplot(fig3)
 plt.close()
 
 # ── SECTION 3 — OPTIMAL WEIGHTS ──────────────────────────────────────────────
-st.header("3. Optimal Portfolio — Exact Investment Allocation")
+st.markdown("### 3. 💰 Optimal Portfolio — Exact Investment Allocation")
 st.caption(
     "This is the answer to the most important question — exactly how much of "
     "your money should go into each stock to achieve the best possible "
     "risk-adjusted return. These weights are derived from the Maximum Sharpe "
     "portfolio on the Efficient Frontier above."
 )
+st.divider()
 
 best_weights = np.array(weights_record[max_sharpe_idx])
 
@@ -194,12 +230,13 @@ st.info(
 )
 
 # ── SECTION 4 — SECTOR PIE CHART ─────────────────────────────────────────────
-st.header("4. Sector Allocation Breakdown")
+st.markdown("### 4. 🥧 Sector Allocation Breakdown")
 st.caption(
     "A visual breakdown of which sectors your optimal portfolio is exposed to. "
     "A well-diversified portfolio ideally has exposure across multiple sectors "
     "so that a downturn in one sector doesn't wipe out your entire portfolio."
 )
+st.divider()
 
 sector_map = {
     'TCS.NS': 'IT', 'INFY.NS': 'IT', 'WIPRO.NS': 'IT',
@@ -256,13 +293,14 @@ with col2:
     )
 
 # ── SECTION 5 — HISTORICAL BACKTESTING ───────────────────────────────────────
-st.header("5. Historical Backtesting — Did It Actually Work?")
+st.markdown("### 5. 🔁 Historical Backtesting — Did It Actually Work?")
 st.caption(
     "Monte Carlo tells you what might happen in the future. Backtesting tells "
     "you what actually happened in the past. We apply the optimal weights to "
     "real historical NSE data from January 2022 to December 2024 and track "
     "your portfolio's actual rupee value every single trading day."
 )
+st.divider()
 
 portfolio_returns = returns.dot(best_weights)
 cumulative_returns = (1 + portfolio_returns).cumprod()
@@ -296,7 +334,7 @@ st.pyplot(fig_bt)
 plt.close()
 
 # ── SECTION 6 — BENCHMARK COMPARISON ─────────────────────────────────────────
-st.header("6. Benchmark Comparison — vs NIFTY 50")
+st.markdown("### 6. 📊 Benchmark Comparison — vs NIFTY 50")
 st.caption(
     "The real test of any investment strategy is whether it beats the market. "
     "NIFTY 50 is India's benchmark index — the average performance of the top "
@@ -304,6 +342,7 @@ st.caption(
     "better off just buying an index fund. Here's how your optimal portfolio "
     "compared over the same 3-year period."
 )
+st.divider()
 
 @st.cache_data
 def load_benchmark():
@@ -365,13 +404,14 @@ else:
     )
 
 # ── SECTION 7 — PORTFOLIO VS INDIVIDUAL STOCKS ───────────────────────────────
-st.header("7. Portfolio vs Individual Stocks")
+st.markdown("### 7. 🏆 Portfolio vs Individual Stocks")
 st.caption(
     "Would you have done better just picking one stock and putting everything "
     "in it? This chart compares your optimal diversified portfolio against "
     "each individual stock's 3-year return. The gold bar is your portfolio. "
     "Blue bars are individual stocks."
 )
+st.divider()
 
 individual_returns = {}
 for ticker in tickers:
@@ -422,7 +462,7 @@ else:
     )
 
 # ── SECTION 8 — DRAWDOWN ANALYSIS ────────────────────────────────────────────
-st.header("8. Maximum Drawdown Analysis")
+st.markdown("### 8. 📉 Maximum Drawdown Analysis")
 st.caption(
     "Returns tell you where you ended up. Drawdown tells you what you had to "
     "survive to get there. Maximum drawdown measures the biggest peak-to-trough "
@@ -430,6 +470,7 @@ st.caption(
     "metric — because most investors panic and sell during large drawdowns, "
     "missing the recovery entirely."
 )
+st.divider()
 
 rolling_max = portfolio_value.cummax()
 drawdown = (portfolio_value - rolling_max) / rolling_max * 100
@@ -468,7 +509,7 @@ st.write(
 )
 
 # ── SECTION 9 — RETURN DISTRIBUTIONS ─────────────────────────────────────────
-st.header("9. Individual Stock Return Distributions")
+st.markdown("### 9. 📊 Individual Stock Return Distributions")
 st.caption(
     "These histograms show how each stock moved on a daily basis over 3 years. "
     "A tall narrow peak centred at zero means the stock is stable — most days "
@@ -476,6 +517,7 @@ st.caption(
     "stock swings significantly day to day. The width of the distribution is "
     "your risk. The centre tells you the average daily direction."
 )
+st.divider()
 
 num_stocks = len(tickers)
 cols = 3
@@ -499,7 +541,7 @@ st.pyplot(fig)
 plt.close()
 
 # ── SECTION 10 — CORRELATION MATRIX ──────────────────────────────────────────
-st.header("10. Stock Correlation Matrix")
+st.markdown("### 10. 🔗 Stock Correlation Matrix")
 st.caption(
     "Correlation measures how two stocks move relative to each other. "
     "A value of +1 means they move perfectly together — if one falls, "
@@ -508,6 +550,7 @@ st.caption(
     "means they move in opposite directions — perfect hedge. "
     "For a truly diversified portfolio, you want low correlations between all pairs."
 )
+st.divider()
 
 fig2, ax2 = plt.subplots(figsize=(8, 6))
 correlation = returns.corr()
@@ -535,7 +578,7 @@ st.write(
 )
 
 # ── SECTION 11 — MONTE CARLO VAR ─────────────────────────────────────────────
-st.header("11. Monte Carlo Simulation — Future Risk (Value at Risk)")
+st.markdown("### 11. 🎲 Monte Carlo Simulation — Future Risk (Value at Risk)")
 st.caption(
     "While backtesting shows what happened in the past, Monte Carlo simulation "
     "models what could happen in the future. We simulate thousands of possible "
@@ -544,6 +587,7 @@ st.caption(
     "view of your downside risk — the same framework used by every major bank "
     "to calculate Value at Risk (VaR) reported to regulators daily."
 )
+st.divider()
 
 n = len(tickers)
 weights = np.array([1 / n] * n)
@@ -612,12 +656,13 @@ else:
         st.pyplot(fig4)
         plt.close()
 
-        # ── SECTION 12 — BUSINESS INSIGHT ────────────────────────────────────
-        st.header("12. Complete Portfolio Analysis Summary")
+        # ── SECTION 12 — SUMMARY ─────────────────────────────────────────────
+        st.markdown("### 12. 📋 Complete Portfolio Analysis Summary")
         st.caption(
             "Everything this app has calculated — summarised in one place. "
             "Use this as your complete investment decision brief."
         )
+        st.divider()
 
         st.subheader("What You're Investing In")
         st.write(
@@ -685,11 +730,16 @@ else:
             f"right amount of risk for the return you're targeting."
         )
 
-        st.divider()
-        st.write(
-            "Built with Python · NumPy · Pandas · Matplotlib · Seaborn · "
-            "Streamlit · yfinance | Data source: Yahoo Finance / NSE"
-        )
+        st.markdown("""
+            <hr>
+            <div style='text-align: center; padding: 1rem; color: grey; font-size: 0.85rem;'>
+                <strong>Portfolio Risk Analyser</strong> · Built by Bhargav Singh<br>
+                D.J. Sanghvi College of Engineering, Mumbai · 2025<br>
+                <a href='https://www.linkedin.com/in/bhargavsingh9' target='_blank'>LinkedIn</a> &nbsp;|&nbsp;
+                <a href='https://github.com/bhargavs999' target='_blank'>GitHub</a> &nbsp;|&nbsp;
+                Data Source: Yahoo Finance / NSE
+            </div>
+        """, unsafe_allow_html=True)
 
     else:
         st.error("Simulation produced invalid results. Please try again.")
