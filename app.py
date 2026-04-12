@@ -734,7 +734,7 @@ else:
             <hr>
             <div style='text-align: center; padding: 1rem; color: grey; font-size: 0.85rem;'>
                 <strong>Portfolio Risk Analyser</strong> · Built by Bhargav Singh<br>
-                D.J. Sanghvi College of Engineering, Mumbai · 2025<br>
+                D.J. Sanghvi College of Engineering, Mumbai · 2026<br>
                 <a href='https://www.linkedin.com/in/bhargavsingh9' target='_blank'>LinkedIn</a> &nbsp;|&nbsp;
                 <a href='https://github.com/bhargavs999' target='_blank'>GitHub</a> &nbsp;|&nbsp;
                 Data Source: Yahoo Finance / NSE
