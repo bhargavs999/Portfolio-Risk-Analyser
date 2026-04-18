@@ -6,7 +6,7 @@
 
 ## 🚀 Live Demo
 
-**👉 [Click here to open the app](<YOUR_STREAMLIT_LINK_HERE>)**
+**👉 [Click here to open the app](<[https://bhargav-portfolio-analyser.streamlit.app/]>)**
 
 ---
 
